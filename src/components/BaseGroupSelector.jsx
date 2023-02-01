@@ -19,7 +19,6 @@ export default function BaseGroupSelector({
   ];
 
   function setBase(category) {
-    console.log("input detected");
     setBaseGroup(category);
     setSubtitle(category);
   }

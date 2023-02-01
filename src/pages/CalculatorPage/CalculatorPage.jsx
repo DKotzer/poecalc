@@ -13,6 +13,7 @@ export default function CalculatorPage() {
   const [subGroup, setSubGroup] = useState("");
   const [currentBases, setCurrentBases] = useState({});
   const [itemList, setItemList] = useState(["beep"]);
+  const [modsList, setModsList] = useState({});
 
   const imgUrlBase = "https://web.poecdn.com/image/";
 
@@ -111,21 +112,40 @@ export default function CalculatorPage() {
   useEffect(() => {
     axios
       .get(
+        "https://raw.githubusercontent.com/brather1ng/RePoE/master/RePoE/data/mods.json"
+      )
+      .then((response) => {
+        setModsList(response.data);
+      });
+    axios
+      .get(
+        "https://raw.githubusercontent.com/brather1ng/RePoE/master/RePoE/data/base_items.json"
+      )
+      .then((response) => {
+        setBases(response.data);
+      });
+
+    console.log("mods list", modsList);
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get(
         "https://raw.githubusercontent.com/brather1ng/RePoE/master/RePoE/data/base_items.json"
       )
       .then((response) => {
         // console.log("arr0", response.data);
-        setBases(response.data);
+
         const activeBases = Object.keys(response.data)
           .filter((key) => key.includes(guide[subGroup]))
           .reduce((obj, key) => {
             return Object.assign(obj, { [key]: response.data[key] });
           }, {});
 
-        console.log("activeBases", activeBases);
+        // console.log("activeBases", activeBases);
         setCurrentBases(activeBases);
         // console.log("subGroup", subGroup);
-        console.log("current bases", currentBases);
+        // console.log("current bases", currentBases);
       });
   }, [subGroup]);
 
@@ -154,10 +174,11 @@ export default function CalculatorPage() {
               )}
               {Object.keys(item[1].properties).map((key) => {
                 if (typeof item[1].properties[key] == "object") {
+                  //had to add this return up here to get it to work, if the key is an object, break down the object and display the key, subkey: value, else just display the key/value
                   return Object.keys(item[1].properties[key]).map((subKey) => {
-                    console.log(
-                      `${item[1].name} ${key} ${subKey} : ${item[1].properties[key][subKey]}`
-                    );
+                    // console.log(
+                    //   `${item[1].name} ${key} ${subKey} : ${item[1].properties[key][subKey]}`
+                    // );
                     return (
                       <div key={subKey}>
                         <div>

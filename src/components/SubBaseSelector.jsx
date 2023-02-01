@@ -96,7 +96,7 @@ export default function SubBaseSelector({
   let Flasks = ["Hybrid Flask", "Life Flask", "Mana Flask", "Utility Flask"];
 
   function subGroupHelper(category) {
-    console.log("subgroup input detected");
+    // console.log("subgroup input detected");
     setSubGroup(category);
   }
 
