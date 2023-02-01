@@ -154,21 +154,18 @@ export default function CalculatorPage() {
               )}
               {Object.keys(item[1].properties).map((key) => {
                 if (typeof item[1].properties[key] == "object") {
-                  return(
-                  
-                    Object.keys(item[1].properties[key]).map((subKey) => {
-                      console.log(
-                        `${item[1].name} ${key} ${subKey} : ${item[1].properties[key][subKey]}`
-                      );
-                      return (
-                        <div key={subKey}>
-                          <div>
-                            {key} {subKey} : {item[1].properties[key][subKey]}
-                          </div>
+                  return Object.keys(item[1].properties[key]).map((subKey) => {
+                    console.log(
+                      `${item[1].name} ${key} ${subKey} : ${item[1].properties[key][subKey]}`
+                    );
+                    return (
+                      <div key={subKey}>
+                        <div>
+                          {key} {subKey} : {item[1].properties[key][subKey]}
                         </div>
-                      );
-                    }));
-                  
+                      </div>
+                    );
+                  });
 
                   // console.log(
                   //   "object found weewoo",
@@ -178,13 +175,12 @@ export default function CalculatorPage() {
                   // );
                 } else {
                   return (
-                    <div>boop</div>
-                    // <div key={key}>
-                    //   <div>
-                    //     {key} : {item[1].properties[key]}
-                    //   </div>
-                    //   <div></div>
-                    // </div>
+                    <div key={key}>
+                      <div>
+                        {key} : {item[1].properties[key]}
+                      </div>
+                      <div></div>
+                    </div>
                   );
                 }
               })}
