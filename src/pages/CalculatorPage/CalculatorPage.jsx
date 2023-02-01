@@ -14,6 +14,7 @@ export default function CalculatorPage() {
   const [currentBases, setCurrentBases] = useState({});
   const [itemList, setItemList] = useState(["beep"]);
   const [modsList, setModsList] = useState({});
+  const [activeItem, setActiveItem] = useState(null);
 
   const imgUrlBase = "https://web.poecdn.com/image/";
 
@@ -129,33 +130,29 @@ export default function CalculatorPage() {
   }, []);
 
   useEffect(() => {
-    axios
-      .get(
-        "https://raw.githubusercontent.com/brather1ng/RePoE/master/RePoE/data/base_items.json"
-      )
-      .then((response) => {
-        // console.log("arr0", response.data);
+    const activeBases = Object.keys(bases)
+      .filter((key) => key.includes(guide[subGroup]))
+      .reduce((obj, key) => {
+        return Object.assign(obj, { [key]: bases[key] });
+      }, {});
 
-        const activeBases = Object.keys(response.data)
-          .filter((key) => key.includes(guide[subGroup]))
-          .reduce((obj, key) => {
-            return Object.assign(obj, { [key]: response.data[key] });
-          }, {});
-
-        // console.log("activeBases", activeBases);
-        setCurrentBases(activeBases);
-        // console.log("subGroup", subGroup);
-        // console.log("current bases", currentBases);
-      });
+    console.log("activeBases", activeBases);
+    setCurrentBases(activeBases);
   }, [subGroup]);
 
   useEffect(() => {
     setItemList(
       Object.entries(currentBases).map((item) => (
-        <Card>
+        <Card className='itemCard'>
           <Card.Body>
-            <Card.Title>{item[1].name}</Card.Title>
+            <Card.Title
+              className='cardTitle'
+              onClick={() => setActiveItem(item[1])}
+            >
+              {item[1].name}
+            </Card.Title>
             <Card.Img
+              onClick={() => setActiveItem(item[1])}
               style={{ height: "auto" }}
               variant='top'
               src={`${imgUrlBase}${item[1].visual_identity.dds_file.replace(
@@ -168,37 +165,60 @@ export default function CalculatorPage() {
             <ListGroup className='list-group-flush'>
               <ListGroup.Item>Level: {item[1].drop_level}</ListGroup.Item>
               {item[1].implicits[0] ? (
-                <ListGroup.Item>{item[1].implicits[0]}</ListGroup.Item>
+                <ListGroup.Item>
+                  {modsList[item[1].implicits[0]].stats[0].id
+                    ? modsList[item[1].implicits[0]].stats[0].id.replace(/_/g, " ")
+                          .replace(/(?:^|\s|[-"'([{])+\S/g, (c) =>
+                            c.toUpperCase()
+                          )
+                    : ""}{" "}
+                  {modsList[item[1].implicits[0]].stats[0].min
+                    ? modsList[item[1].implicits[0]].stats[0].min
+                    : ""}
+                  -
+                  {modsList[item[1].implicits[0]].stats[0].max
+                    ? modsList[item[1].implicits[0]].stats[0].max
+                    : ""}
+                </ListGroup.Item>
               ) : (
                 ""
               )}
               {Object.keys(item[1].properties).map((key) => {
                 if (typeof item[1].properties[key] == "object") {
-                  //had to add this return up here to get it to work, if the key is an object, break down the object and display the key, subkey: value, else just display the key/value
-                  return Object.keys(item[1].properties[key]).map((subKey) => {
-                    // console.log(
-                    //   `${item[1].name} ${key} ${subKey} : ${item[1].properties[key][subKey]}`
-                    // );
-                    return (
-                      <div key={subKey}>
-                        <div>
-                          {key} {subKey} : {item[1].properties[key][subKey]}
-                        </div>
+                  return (
+                    <div>
+                      <div>
+                        {key
+                          .replace(/_/g, " ")
+                          .replace(/(?:^|\s|[-"'([{])+\S/g, (c) =>
+                            c.toUpperCase()
+                          )}
+                        : {item[1].properties[key].min} -{" "}
+                        {item[1].properties[key].max}
                       </div>
-                    );
-                  });
+                    </div>
+                  );
 
-                  // console.log(
-                  //   "object found weewoo",
-                  //   key,
-                  //   "min",
-                  //   item[1].properties[key].min
-                  // );
+                  //might need to go back to the way below if we run in to errors with uniques, above way seems to work for all bases other than health flasks
+                  // return Object.keys(item[1].properties[key]).map((subKey) => {
+                  //   return (
+                  //     <div key={subKey}>
+                  //       <div>
+                  //         {key} {subKey} : {item[1].properties[key][subKey]}
+                  //       </div>
+                  //     </div>
+                  //   );
+                  // });
                 } else {
                   return (
                     <div key={key}>
                       <div>
-                        {key} : {item[1].properties[key]}
+                        {key
+                          .replace(/_/g, " ")
+                          .replace(/(?:^|\s|[-"'([{])+\S/g, (c) =>
+                            c.toUpperCase()
+                          )}{" "}
+                        : {item[1].properties[key]}
                       </div>
                       <div></div>
                     </div>
@@ -210,17 +230,13 @@ export default function CalculatorPage() {
         </Card>
       ))
     );
-    // setItemList(
-    //   Object.entries(currentBases).map((item) => <li>{item.name}</li>)
-    // );
-    // console.log("huh", itemList);
   }, [currentBases]);
 
   return (
     <div>
       <h1>Calculator</h1>
       <h2>{subtitle === "Choose base group" ? subtitle : ""}</h2>
-
+      {activeItem ? activeItem.name : ""}
       <BaseGroupSelector
         baseGroup={baseGroup}
         setBaseGroup={setBaseGroup}
@@ -234,6 +250,87 @@ export default function CalculatorPage() {
           setSubGroup={setSubGroup}
           setSubtitle={setSubtitle}
         />
+      ) : (
+        ""
+      )}
+      {activeItem ? (
+        <Card className='selectedCard'>
+          <Card.Body>
+            <Card.Title
+              className='cardTitle'
+              onClick={() => setActiveItem(activeItem)}
+            >
+              {activeItem.name}
+            </Card.Title>
+            <Card.Img
+              onClick={() => setActiveItem(activeItem)}
+              style={{ height: "auto" }}
+              variant='top'
+              src={`${imgUrlBase}${activeItem.visual_identity.dds_file.replace(
+                ".dds",
+                ".png"
+              )}`}
+              className='cardIMG'
+            />
+            {/* <Card.Text>Something</Card.Text> */}
+            <ListGroup className='list-group-flush'>
+              <ListGroup.Item>Level: {activeItem.drop_level}</ListGroup.Item>
+
+              {activeItem.implicits[0] ? (
+                <ListGroup.Item>
+                  {modsList[activeItem.implicits[0]].stats[0].id
+                    ? modsList[activeItem.implicits[0]].stats[0].id
+                    : ""}{" "}
+                  {modsList[activeItem.implicits[0]].stats[0].min
+                    ? modsList[activeItem.implicits[0]].stats[0].min
+                    : ""}
+                  -
+                  {modsList[activeItem.implicits[0]].stats[0].max
+                    ? modsList[activeItem.implicits[0]].stats[0].max
+                    : ""}
+                </ListGroup.Item>
+              ) : (
+                ""
+              )}
+              {Object.keys(activeItem.properties).map((key) => {
+                if (typeof activeItem.properties[key] == "object") {
+                  //had to add this return up here to get it to work, if the key is an object, break down the object and display the key, subkey: value, else just display the key/value
+                  return Object.keys(activeItem.properties[key]).map(
+                    (subKey) => {
+                      // console.log(
+                      //   `${activeItem.name} ${key} ${subKey} : ${activeItem.properties[key][subKey]}`
+                      // );
+                      return (
+                        <div key={subKey}>
+                          <div>
+                            {key} {subKey} :{" "}
+                            {activeItem.properties[key][subKey]}
+                          </div>
+                        </div>
+                      );
+                    }
+                  );
+
+                  // console.log(
+                  //   "object found weewoo",
+                  //   key,
+                  //   "min",
+                  //   activeItem.properties[key].min
+                  // );
+                } else {
+                  return (
+                    <div key={key}>
+                      <div>
+                        {key} : {activeItem.properties[key]}
+                      </div>
+                      <div></div>
+                    </div>
+                  );
+                }
+              })}
+            </ListGroup>
+          </Card.Body>
+        </Card>
       ) : (
         ""
       )}

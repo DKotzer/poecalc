@@ -93,7 +93,7 @@ export default function SubBaseSelector({
     "Viridian Jewel",
   ];
 
-  let Flasks = ["Hybrid Flask", "Life Flask", "Mana Flask", "Utility Flask"];
+  let Flasks = ["Hybrid Flask", "Mana Flask", "Utility Flask"];
 
   function subGroupHelper(category) {
     // console.log("subgroup input detected");
@@ -120,7 +120,7 @@ export default function SubBaseSelector({
 
   return (
     <div>
-      <ul className='baseList'>{list}</ul>
+      <ul className='subGroupList'>{list}</ul>
     </div>
   );
 }

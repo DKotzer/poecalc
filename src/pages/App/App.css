@@ -52,7 +52,7 @@ li {
   padding-left: 5px;
   background-color: #282c34;
   color: white;
-  border: 1px solid black;
+  border: 1px solid rgb(255, 255, 255);
 }
 
 .baseSelectorButton {
@@ -63,9 +63,44 @@ li {
   color: red;
   background-color: #070708;
 }
+
+.baseList:hover {
+  cursor: pointer;
+}
+
+.subGroupList:hover {
+  cursor: pointer;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 300px));
   grid-gap: 20px;
   align-items: stretch;
+}
+
+.baseList {
+  display: flex;
+  margin-bottom: 0px;
+}
+
+.cardIMG:hover {
+  scale: 105%;
+  cursor: pointer;
+}
+
+.card:hover {
+  outline: 1px solid purple !important;
+}
+
+.cardTitle:hover {
+  scale: 105%;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.selectedCard {
+  max-width: 400px;
+  max-height: 600px;
+  margin-bottom: 100px;
 }
