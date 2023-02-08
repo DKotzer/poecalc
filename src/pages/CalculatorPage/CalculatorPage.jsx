@@ -14,7 +14,10 @@ export default function CalculatorPage() {
   const [currentBases, setCurrentBases] = useState({});
   const [itemList, setItemList] = useState(["beep"]);
   const [modsList, setModsList] = useState({});
+  const [shortModsList, setShortModsList] = useState({});
   const [activeItem, setActiveItem] = useState(null);
+  const [activeItemDetails, setActiveItemDetails] = useState([]);
+  const [activeItemModTypes, setActiveItemModTypes] = useState([]);
 
   const imgUrlBase = "https://web.poecdn.com/image/";
 
@@ -116,7 +119,37 @@ export default function CalculatorPage() {
         "https://raw.githubusercontent.com/brather1ng/RePoE/master/RePoE/data/mods.json"
       )
       .then((response) => {
+        //want to set it to tempHolder instead but tempHolder is coming back as empty, need to fix the filter
         setModsList(response.data);
+        console.log("modsList initial", response.data);
+        setShortModsList(
+          Object.values(response.data)
+            .filter((key) => key["generation_type"].includes("suffix"))
+            .reduce((obj, key) => {
+              return Object.assign(obj, { [key]: response.data[key] });
+            }, {})
+        );
+        console.log(
+          "beep boop",
+          Object.keys(response.data)
+            .filter((key) => key.generation_type.includes("suffix"))
+            .reduce((obj, key) => {
+              return Object.assign(obj, { [key]: response.data[key] });
+            }, {})
+        );
+
+        // const tempHolder = Object.keys(response.data)
+        //   .filter(
+        //     (key) =>
+        //       key["generation_type"] === "prefix" ||
+        //       key["generation_type"] === "suffix" ||
+        //       key["generation_type"] === "implicit"
+        //   )
+        //   .reduce((obj, key) => {
+        //     return Object.assign(obj, { [key]: bases[key] });
+        //   }, {});
+        // console.log("tempholder", tempHolder);
+        // setShortModsList(tempHolder);
       });
     axios
       .get(
@@ -125,11 +158,10 @@ export default function CalculatorPage() {
       .then((response) => {
         setBases(response.data);
       });
-
-    console.log("mods list", modsList);
   }, []);
 
   useEffect(() => {
+    console.log("short mods list", shortModsList);
     const activeBases = Object.keys(bases)
       .filter((key) => key.includes(guide[subGroup]))
       .reduce((obj, key) => {
@@ -138,7 +170,54 @@ export default function CalculatorPage() {
 
     console.log("activeBases", activeBases);
     setCurrentBases(activeBases);
+    console.log("activeItem", activeItem);
+    console.log("mods list", modsList);
   }, [subGroup]);
+
+  useEffect(() => {
+    if (activeItem != null) {
+      let activeTags = [];
+      for (let i = 0; i < activeItem.tags.length; i++) {
+        activeTags.push(activeItem.tags[i]);
+      }
+      console.log("active tags", activeTags);
+      let activeMods = [];
+      let modTypes = [];
+      let modsLength = Object.keys(modsList).length;
+      for (let j = 0; j < modsLength; j++) {
+        for (
+          let z = 0;
+          z < Object.values(modsList)[j].spawn_weights.length;
+          z++
+        ) {
+          if (
+            activeTags.includes(
+              Object.values(modsList)[j].spawn_weights[z].tag
+            ) &&
+            Object.values(modsList)[j].spawn_weights[z].weight > 0 &&
+            Object.values(modsList)[j].domain == "item" &&
+            ["suffix", "prefix", "implicit"].includes(
+              Object.values(modsList)[j].generation_type
+            )
+          ) {
+            activeMods.push(Object.values(modsList)[j]);
+            let compareString = Object.values(modsList)[j].type;
+            if (modTypes.includes(compareString)) {
+              // console.log("already found");
+            } else {
+              // console.log('else', Object.values(modsList)[j].type);
+              modTypes.push(Object.values(modsList)[j].type);
+              // console.log("modTypes", modTypes);
+              // console.log(modTypes.includes(compareString));
+            }
+          }
+        }
+      }
+      setActiveItemModTypes(modTypes);
+      console.log("active Mods", activeMods);
+      console.log("modTypes", modTypes);
+    }
+  }, [activeItem]);
 
   useEffect(() => {
     setItemList(
@@ -167,10 +246,11 @@ export default function CalculatorPage() {
               {item[1].implicits[0] ? (
                 <ListGroup.Item>
                   {modsList[item[1].implicits[0]].stats[0].id
-                    ? modsList[item[1].implicits[0]].stats[0].id.replace(/_/g, " ")
-                          .replace(/(?:^|\s|[-"'([{])+\S/g, (c) =>
-                            c.toUpperCase()
-                          )
+                    ? modsList[item[1].implicits[0]].stats[0].id
+                        .replace(/_/g, " ")
+                        .replace(/(?:^|\s|[-"'([{])+\S/g, (c) =>
+                          c.toUpperCase()
+                        )
                     : ""}{" "}
                   {modsList[item[1].implicits[0]].stats[0].min
                     ? modsList[item[1].implicits[0]].stats[0].min
@@ -236,7 +316,7 @@ export default function CalculatorPage() {
     <div>
       <h1>Calculator</h1>
       <h2>{subtitle === "Choose base group" ? subtitle : ""}</h2>
-      {activeItem ? activeItem.name : ""}
+
       <BaseGroupSelector
         baseGroup={baseGroup}
         setBaseGroup={setBaseGroup}
@@ -254,83 +334,101 @@ export default function CalculatorPage() {
         ""
       )}
       {activeItem ? (
-        <Card className='selectedCard'>
-          <Card.Body>
-            <Card.Title
-              className='cardTitle'
-              onClick={() => setActiveItem(activeItem)}
-            >
-              {activeItem.name}
-            </Card.Title>
-            <Card.Img
-              onClick={() => setActiveItem(activeItem)}
-              style={{ height: "auto" }}
-              variant='top'
-              src={`${imgUrlBase}${activeItem.visual_identity.dds_file.replace(
-                ".dds",
-                ".png"
-              )}`}
-              className='cardIMG'
-            />
-            {/* <Card.Text>Something</Card.Text> */}
-            <ListGroup className='list-group-flush'>
-              <ListGroup.Item>Level: {activeItem.drop_level}</ListGroup.Item>
+        <div className='activeArea'>
+          <Card className='selectedCard'>
+            <Card.Body>
+              <Card.Title
+                className='cardTitle'
+                onClick={() => setActiveItem(activeItem)}
+              >
+                {activeItem.name}
+              </Card.Title>
+              <Card.Img
+                onClick={() => setActiveItem(activeItem)}
+                variant='top'
+                src={`${imgUrlBase}${activeItem.visual_identity.dds_file.replace(
+                  ".dds",
+                  ".png"
+                )}`}
+                className='cardIMG'
+              />
+              {/* <Card.Text>Something</Card.Text> */}
+              <ListGroup className='list-group-flush'>
+                <ListGroup.Item>Level: {activeItem.drop_level}</ListGroup.Item>
 
-              {activeItem.implicits[0] ? (
-                <ListGroup.Item>
-                  {modsList[activeItem.implicits[0]].stats[0].id
-                    ? modsList[activeItem.implicits[0]].stats[0].id
-                    : ""}{" "}
-                  {modsList[activeItem.implicits[0]].stats[0].min
-                    ? modsList[activeItem.implicits[0]].stats[0].min
-                    : ""}
-                  -
-                  {modsList[activeItem.implicits[0]].stats[0].max
-                    ? modsList[activeItem.implicits[0]].stats[0].max
-                    : ""}
-                </ListGroup.Item>
-              ) : (
-                ""
-              )}
-              {Object.keys(activeItem.properties).map((key) => {
-                if (typeof activeItem.properties[key] == "object") {
-                  //had to add this return up here to get it to work, if the key is an object, break down the object and display the key, subkey: value, else just display the key/value
-                  return Object.keys(activeItem.properties[key]).map(
-                    (subKey) => {
-                      // console.log(
-                      //   `${activeItem.name} ${key} ${subKey} : ${activeItem.properties[key][subKey]}`
-                      // );
-                      return (
-                        <div key={subKey}>
-                          <div>
-                            {key} {subKey} :{" "}
-                            {activeItem.properties[key][subKey]}
+                {activeItem.implicits[0] ? (
+                  <ListGroup.Item>
+                    {modsList[activeItem.implicits[0]].stats[0].id
+                      ? modsList[activeItem.implicits[0]].stats[0].id
+                      : ""}{" "}
+                    {modsList[activeItem.implicits[0]].stats[0].min
+                      ? modsList[activeItem.implicits[0]].stats[0].min
+                      : ""}
+                    -
+                    {modsList[activeItem.implicits[0]].stats[0].max
+                      ? modsList[activeItem.implicits[0]].stats[0].max
+                      : ""}
+                  </ListGroup.Item>
+                ) : (
+                  ""
+                )}
+                {Object.keys(activeItem.properties).map((key) => {
+                  if (typeof activeItem.properties[key] == "object") {
+                    //had to add this return up here to get it to work, if the key is an object, break down the object and display the key, subkey: value, else just display the key/value
+                    return Object.keys(activeItem.properties[key]).map(
+                      (subKey) => {
+                        // console.log(
+                        //   `${activeItem.name} ${key} ${subKey} : ${activeItem.properties[key][subKey]}`
+                        // );
+                        return (
+                          <div key={subKey}>
+                            <div>
+                              {key} {subKey} :{" "}
+                              {activeItem.properties[key][subKey]}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    }
-                  );
+                        );
+                      }
+                    );
 
-                  // console.log(
-                  //   "object found weewoo",
-                  //   key,
-                  //   "min",
-                  //   activeItem.properties[key].min
-                  // );
-                } else {
-                  return (
-                    <div key={key}>
-                      <div>
-                        {key} : {activeItem.properties[key]}
+                    // console.log(
+                    //   "object found weewoo",
+                    //   key,
+                    //   "min",
+                    //   activeItem.properties[key].min
+                    // );
+                  } else {
+                    return (
+                      <div key={key}>
+                        <div>
+                          {key} : {activeItem.properties[key]}
+                        </div>
+                        <div></div>
                       </div>
-                      <div></div>
-                    </div>
-                  );
-                }
-              })}
-            </ListGroup>
-          </Card.Body>
-        </Card>
+                    );
+                  }
+                })}
+              </ListGroup>
+            </Card.Body>
+          </Card>
+          <div className='activeStatsArea'>active stats area</div>
+          <table>
+            <tbody>
+              <tr>
+                <th>Mod Category</th>
+              </tr>
+              {activeItemModTypes.length > 0
+                ? activeItemModTypes.map((modType) => {
+                    return (
+                      <tr>
+                        <td>{modType}</td>
+                      </tr>
+                    );
+                  })
+                : ""}
+            </tbody>
+          </table>
+        </div>
       ) : (
         ""
       )}
