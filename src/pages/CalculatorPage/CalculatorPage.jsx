@@ -123,18 +123,19 @@ export default function CalculatorPage() {
         setModsList(response.data);
         console.log("modsList initial", response.data);
         setShortModsList(
-          Object.values(response.data)
-            .filter((key) => key["generation_type"].includes("suffix"))
-            .reduce((obj, key) => {
-              return Object.assign(obj, { [key]: response.data[key] });
+          Object.entries(response.data)
+            .filter(([_, mod]) => mod.generation_type === "suffix")
+            .reduce((obj, [id, mod]) => {
+              return Object.assign(obj, { [id]: mod });
             }, {})
         );
+        
         console.log(
-          "beep boop",
-          Object.keys(response.data)
-            .filter((key) => key.generation_type.includes("suffix"))
-            .reduce((obj, key) => {
-              return Object.assign(obj, { [key]: response.data[key] });
+          "short mod list",
+          Object.entries(response.data)
+            .filter(([_, mod]) => mod.generation_type === "suffix")
+            .reduce((obj, [id, mod]) => {
+              return Object.assign(obj, { [id]: mod });
             }, {})
         );
 
@@ -161,7 +162,7 @@ export default function CalculatorPage() {
   }, []);
 
   useEffect(() => {
-    console.log("short mods list", shortModsList);
+    // console.log("short mods list", shortModsList);
     const activeBases = Object.keys(bases)
       .filter((key) => key.includes(guide[subGroup]))
       .reduce((obj, key) => {
@@ -176,37 +177,47 @@ export default function CalculatorPage() {
 
   useEffect(() => {
     if (activeItem != null) {
-      let activeTags = [];
-      for (let i = 0; i < activeItem.tags.length; i++) {
-        activeTags.push(activeItem.tags[i]);
-      }
+      // let activeTags = [];
+      // for (let i = 0; i < activeItem.tags.length; i++) {
+      //   activeTags.push(activeItem.tags[i]);
+      // }
+      let activeTags = activeItem.tags;
       console.log("active tags", activeTags);
-      let activeMods = [];
+      let activeMods = Object.values(modsList).filter((mod) => {
+        return mod.spawn_weights.some((weight) => {
+          return (
+            activeTags.includes(weight.tag) &&
+            weight.weight > 0 &&
+            mod.domain === "item" &&
+            ["suffix", "prefix", "implicit"].includes(mod.generation_type)
+          );
+        });
+      });
       let modTypes = [];
-      let modsLength = Object.keys(modsList).length;
+      let modsLength = Object.keys(shortModsList).length;
       for (let j = 0; j < modsLength; j++) {
         for (
           let z = 0;
-          z < Object.values(modsList)[j].spawn_weights.length;
+          z < Object.values(shortModsList)[j].spawn_weights.length;
           z++
         ) {
           if (
             activeTags.includes(
-              Object.values(modsList)[j].spawn_weights[z].tag
+              Object.values(shortModsList)[j].spawn_weights[z].tag
             ) &&
-            Object.values(modsList)[j].spawn_weights[z].weight > 0 &&
-            Object.values(modsList)[j].domain == "item" &&
+            Object.values(shortModsList)[j].spawn_weights[z].weight > 0 &&
+            Object.values(shortModsList)[j].domain == "item" &&
             ["suffix", "prefix", "implicit"].includes(
-              Object.values(modsList)[j].generation_type
+              Object.values(shortModsList)[j].generation_type
             )
           ) {
-            activeMods.push(Object.values(modsList)[j]);
-            let compareString = Object.values(modsList)[j].type;
+            // activeMods.push(Object.values(shortModsList)[j]);
+            let compareString = Object.values(shortModsList)[j].type;
             if (modTypes.includes(compareString)) {
               // console.log("already found");
             } else {
-              // console.log('else', Object.values(modsList)[j].type);
-              modTypes.push(Object.values(modsList)[j].type);
+              // console.log('else', Object.values(shortModsList)[j].type);
+              modTypes.push(Object.values(shortModsList)[j].type);
               // console.log("modTypes", modTypes);
               // console.log(modTypes.includes(compareString));
             }
