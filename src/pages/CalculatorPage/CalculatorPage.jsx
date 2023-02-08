@@ -16,7 +16,7 @@ export default function CalculatorPage() {
   const [modsList, setModsList] = useState({});
   const [shortModsList, setShortModsList] = useState({});
   const [activeItem, setActiveItem] = useState(null);
-  const [activeItemDetails, setActiveItemDetails] = useState([]);
+  const [activeItemMods, setActiveItemMods] = useState([]);
   const [activeItemModTypes, setActiveItemModTypes] = useState([]);
 
   const imgUrlBase = "https://web.poecdn.com/image/";
@@ -129,7 +129,7 @@ export default function CalculatorPage() {
               return Object.assign(obj, { [id]: mod });
             }, {})
         );
-        
+
         console.log(
           "short mod list",
           Object.entries(response.data)
@@ -195,37 +195,60 @@ export default function CalculatorPage() {
       });
       let modTypes = [];
       let modsLength = Object.keys(shortModsList).length;
-      for (let j = 0; j < modsLength; j++) {
-        for (
-          let z = 0;
-          z < Object.values(shortModsList)[j].spawn_weights.length;
-          z++
-        ) {
-          if (
-            activeTags.includes(
-              Object.values(shortModsList)[j].spawn_weights[z].tag
-            ) &&
-            Object.values(shortModsList)[j].spawn_weights[z].weight > 0 &&
-            Object.values(shortModsList)[j].domain == "item" &&
-            ["suffix", "prefix", "implicit"].includes(
-              Object.values(shortModsList)[j].generation_type
-            )
-          ) {
-            // activeMods.push(Object.values(shortModsList)[j]);
-            let compareString = Object.values(shortModsList)[j].type;
-            if (modTypes.includes(compareString)) {
-              // console.log("already found");
-            } else {
-              // console.log('else', Object.values(shortModsList)[j].type);
-              modTypes.push(Object.values(shortModsList)[j].type);
-              // console.log("modTypes", modTypes);
-              // console.log(modTypes.includes(compareString));
+
+      if (modsLength > 0) {
+        const filteredMods = activeMods.filter((mod) => {
+          for (let i = 0; i < mod.spawn_weights.length; i++) {
+            if (
+              activeTags.includes(mod.spawn_weights[i].tag) &&
+              mod.spawn_weights[i].weight > 0 &&
+              mod.domain === "item" &&
+              ["suffix", "prefix", "implicit"].includes(mod.generation_type)
+            ) {
+              return true;
             }
           }
-        }
+          console.log("active Mods", filteredMods);
+          return false;
+        });
+        console.log(filteredMods);
+        setActiveItemMods(filteredMods)
+        modTypes = [...new Set(filteredMods.map((mod) => mod.type))];
+      } else {
+        console.log("short mods list length = 0");
       }
+      //old way of doing it, took 1000x longer
+      // for (let j = 0; j < modsLength; j++) {
+      //   for (
+      //     let z = 0;
+      //     z < Object.values(shortModsList)[j].spawn_weights.length;
+      //     z++
+      //   ) {
+      //     if (
+      //       activeTags.includes(
+      //         Object.values(shortModsList)[j].spawn_weights[z].tag
+      //       ) &&
+      //       Object.values(shortModsList)[j].spawn_weights[z].weight > 0 &&
+      //       Object.values(shortModsList)[j].domain == "item" &&
+      //       ["suffix", "prefix", "implicit"].includes(
+      //         Object.values(shortModsList)[j].generation_type
+      //       )
+      //     ) {
+      //       // activeMods.push(Object.values(shortModsList)[j]);
+      //       let compareString = Object.values(shortModsList)[j].type;
+      //       if (modTypes.includes(compareString)) {
+      //         // console.log("already found");
+      //       } else {
+      //         // console.log('else', Object.values(shortModsList)[j].type);
+      //         modTypes.push(Object.values(shortModsList)[j].type);
+      //         // console.log("modTypes", modTypes);
+      //         // console.log(modTypes.includes(compareString));
+      //       }
+      //     }
+      //   }
+      // }
       setActiveItemModTypes(modTypes);
-      console.log("active Mods", activeMods);
+
       console.log("modTypes", modTypes);
     }
   }, [activeItem]);
