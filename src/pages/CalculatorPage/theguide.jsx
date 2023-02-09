@@ -1,4 +1,5 @@
-const theGuide = {
+export default {
+  guide: {
     "Body Armors": "Body",
     "Boots": "Boots",
     "Flasks": "Flask",
@@ -88,4 +89,5 @@ const theGuide = {
     "Two Hand Mace": "TwoHandMace",
     "Two Hand Sword": "TwoHandSword",
     "Warstaff": "Warstaff",
+  },
 };
