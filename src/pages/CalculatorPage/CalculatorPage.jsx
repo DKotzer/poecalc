@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import BaseGroupSelector from "../../components/BaseGroupSelector";
 import SubBaseSelector from "../../components/SubBaseSelector";
-import axios from "axios";
+import ActiveArea from "../../components/ActiveArea";
 import { Card, ListGroup } from "react-bootstrap";
 
 export default function CalculatorPage() {
@@ -18,6 +19,8 @@ export default function CalculatorPage() {
   const [activeItem, setActiveItem] = useState(null);
   const [activeItemMods, setActiveItemMods] = useState([]);
   const [activeItemModTypes, setActiveItemModTypes] = useState([]);
+  const [activePrefixes, setActivePrefixes] = useState([]);
+  const [activeSuffixes, setActiveSuffixes] = useState([]);
 
   const imgUrlBase = "https://web.poecdn.com/image/";
 
@@ -208,12 +211,65 @@ export default function CalculatorPage() {
               return true;
             }
           }
-          console.log("active Mods", filteredMods);
           return false;
         });
-        console.log(filteredMods);
+        const filteredPrefixes = filteredMods.filter((mod) => {
+          for (let i = 0; i < mod.spawn_weights.length; i++) {
+            if (
+              activeTags.includes(mod.spawn_weights[i].tag) &&
+              mod.spawn_weights[i].weight > 0 &&
+              mod.domain === "item" &&
+              ["prefix"].includes(mod.generation_type)
+            ) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+        const filteredSuffixes = filteredMods.filter((mod) => {
+          for (let i = 0; i < mod.spawn_weights.length; i++) {
+            if (
+              activeTags.includes(mod.spawn_weights[i].tag) &&
+              mod.spawn_weights[i].weight > 0 &&
+              mod.domain === "item" &&
+              ["suffix"].includes(mod.generation_type)
+            ) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+        const filteredImplicits = filteredMods.filter((mod) => {
+          for (let i = 0; i < mod.spawn_weights.length; i++) {
+            if (
+              activeTags.includes(mod.spawn_weights[i].tag) &&
+              mod.spawn_weights[i].weight > 0 &&
+              mod.domain === "item" &&
+              ["implicit"].includes(mod.generation_type)
+            ) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+        console.log("active implicits", filteredImplicits);
+        console.log("active suffixes", filteredSuffixes);
+        console.log("active prefixes", filteredPrefixes);
+        console.log("active Mods", filteredMods);
         setActiveItemMods(filteredMods);
         modTypes = [...new Set(filteredMods.map((mod) => mod.type))];
+        //go back to this way if new way doesn't work, and change mod.type.replace to mod.replace for ActiveArea.jsx in the maps
+        // setActivePrefixes([
+        //   ...new Set(filteredPrefixes.map((mod) => mod.type)),
+        // ]);
+        // setActiveSuffixes([
+        //   ...new Set(filteredSuffixes.map((mod) => mod.type)),
+        // ]);
+        setActivePrefixes(filteredPrefixes);
+        setActiveSuffixes(filteredSuffixes);
       } else {
         console.log("short mods list length = 0");
       }
@@ -313,17 +369,6 @@ export default function CalculatorPage() {
                       </div>
                     </div>
                   );
-
-                  //might need to go back to the way below if we run in to errors with uniques, above way seems to work for all bases other than health flasks
-                  // return Object.keys(item[1].properties[key]).map((subKey) => {
-                  //   return (
-                  //     <div key={subKey}>
-                  //       <div>
-                  //         {key} {subKey} : {item[1].properties[key][subKey]}
-                  //       </div>
-                  //     </div>
-                  //   );
-                  // });
                 } else {
                   return (
                     <div key={key}>
@@ -369,101 +414,14 @@ export default function CalculatorPage() {
         ""
       )}
       {activeItem ? (
-        <div className='activeArea'>
-          <Card className='selectedCard'>
-            <Card.Body>
-              <Card.Title
-                className='cardTitle'
-                onClick={() => setActiveItem(activeItem)}
-              >
-                {activeItem.name}
-              </Card.Title>
-              <Card.Img
-                onClick={() => setActiveItem(activeItem)}
-                variant='top'
-                src={`${imgUrlBase}${activeItem.visual_identity.dds_file.replace(
-                  ".dds",
-                  ".png"
-                )}`}
-                className='cardIMG'
-              />
-              {/* <Card.Text>Something</Card.Text> */}
-              <ListGroup className='list-group-flush'>
-                <ListGroup.Item>Level: {activeItem.drop_level}</ListGroup.Item>
-
-                {activeItem.implicits[0] ? (
-                  <ListGroup.Item>
-                    {modsList[activeItem.implicits[0]].stats[0].id
-                      ? modsList[activeItem.implicits[0]].stats[0].id
-                      : ""}{" "}
-                    {modsList[activeItem.implicits[0]].stats[0].min
-                      ? modsList[activeItem.implicits[0]].stats[0].min
-                      : ""}
-                    -
-                    {modsList[activeItem.implicits[0]].stats[0].max
-                      ? modsList[activeItem.implicits[0]].stats[0].max
-                      : ""}
-                  </ListGroup.Item>
-                ) : (
-                  ""
-                )}
-                {Object.keys(activeItem.properties).map((key) => {
-                  if (typeof activeItem.properties[key] == "object") {
-                    //had to add this return up here to get it to work, if the key is an object, break down the object and display the key, subkey: value, else just display the key/value
-                    return Object.keys(activeItem.properties[key]).map(
-                      (subKey) => {
-                        // console.log(
-                        //   `${activeItem.name} ${key} ${subKey} : ${activeItem.properties[key][subKey]}`
-                        // );
-                        return (
-                          <div key={subKey}>
-                            <div>
-                              {key} {subKey} :{" "}
-                              {activeItem.properties[key][subKey]}
-                            </div>
-                          </div>
-                        );
-                      }
-                    );
-
-                    // console.log(
-                    //   "object found weewoo",
-                    //   key,
-                    //   "min",
-                    //   activeItem.properties[key].min
-                    // );
-                  } else {
-                    return (
-                      <div key={key}>
-                        <div>
-                          {key} : {activeItem.properties[key]}
-                        </div>
-                        <div></div>
-                      </div>
-                    );
-                  }
-                })}
-              </ListGroup>
-            </Card.Body>
-          </Card>
-          <div className='activeStatsArea'>active stats area</div>
-          <table>
-            <tbody>
-              <tr>
-                <th>Mod Category</th>
-              </tr>
-              {activeItemModTypes.length > 0
-                ? activeItemModTypes.map((modType) => {
-                    return (
-                      <tr>
-                        <td>{modType}</td>
-                      </tr>
-                    );
-                  })
-                : ""}
-            </tbody>
-          </table>
-        </div>
+        <ActiveArea
+          modsList={modsList}
+          setActiveItem={setActiveItem}
+          activeItemModTypes={activeItemModTypes}
+          activeItem={activeItem}
+          activePrefixes={activePrefixes}
+          activeSuffixes={activeSuffixes}
+        />
       ) : (
         ""
       )}
