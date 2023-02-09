@@ -37,6 +37,8 @@ export default function ActiveArea({
               <ListGroup.Item>
                 {modsList[activeItem.implicits[0]].stats[0].id
                   ? modsList[activeItem.implicits[0]].stats[0].id
+                      .replace(/_/g, " ")
+                      .replace(/(?:^|\s|[-"'([{])+\S/g, (c) => c.toUpperCase())
                   : ""}{" "}
                 {modsList[activeItem.implicits[0]].stats[0].min
                   ? modsList[activeItem.implicits[0]].stats[0].min

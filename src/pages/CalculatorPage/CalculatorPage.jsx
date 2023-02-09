@@ -7,8 +7,6 @@ import { Card, ListGroup } from "react-bootstrap";
 
 export default function CalculatorPage() {
   const [baseGroup, setBaseGroup] = useState("");
-  const [baseItem, setBaseItem] = useState("");
-  const [itemLevel, setItemLevel] = useState("85");
   const [subtitle, setSubtitle] = useState("Choose base group");
   const [bases, setBases] = useState({});
   const [subGroup, setSubGroup] = useState("");
@@ -123,37 +121,20 @@ export default function CalculatorPage() {
       )
       .then((response) => {
         //want to set it to tempHolder instead but tempHolder is coming back as empty, need to fix the filter
-        setModsList(response.data);
-        console.log("modsList initial", response.data);
+        // setModsList(response.data);
+        // console.log("modsList initial", response.data);
         setShortModsList(
           Object.entries(response.data)
-            .filter(([_, mod]) => mod.generation_type === "suffix")
+            .filter(
+              ([_, mod]) =>
+                mod.generation_type === "suffix" ||
+                mod.generation_type === "prefix" ||
+                mod.generation_type === "implicit"
+            )
             .reduce((obj, [id, mod]) => {
               return Object.assign(obj, { [id]: mod });
             }, {})
         );
-
-        console.log(
-          "short mod list",
-          Object.entries(response.data)
-            .filter(([_, mod]) => mod.generation_type === "suffix")
-            .reduce((obj, [id, mod]) => {
-              return Object.assign(obj, { [id]: mod });
-            }, {})
-        );
-
-        // const tempHolder = Object.keys(response.data)
-        //   .filter(
-        //     (key) =>
-        //       key["generation_type"] === "prefix" ||
-        //       key["generation_type"] === "suffix" ||
-        //       key["generation_type"] === "implicit"
-        //   )
-        //   .reduce((obj, key) => {
-        //     return Object.assign(obj, { [key]: bases[key] });
-        //   }, {});
-        // console.log("tempholder", tempHolder);
-        // setShortModsList(tempHolder);
       });
     axios
       .get(
@@ -175,7 +156,7 @@ export default function CalculatorPage() {
     console.log("activeBases", activeBases);
     setCurrentBases(activeBases);
     console.log("activeItem", activeItem);
-    console.log("mods list", modsList);
+    // console.log("mods list", modsList);
   }, [subGroup]);
 
   useEffect(() => {
@@ -186,7 +167,7 @@ export default function CalculatorPage() {
       // }
       let activeTags = activeItem.tags;
       console.log("active tags", activeTags);
-      let activeMods = Object.values(modsList).filter((mod) => {
+      let activeMods = Object.values(shortModsList).filter((mod) => {
         return mod.spawn_weights.some((weight) => {
           return (
             activeTags.includes(weight.tag) &&
@@ -255,10 +236,10 @@ export default function CalculatorPage() {
 
           return false;
         });
-        console.log("active implicits", filteredImplicits);
-        console.log("active suffixes", filteredSuffixes);
-        console.log("active prefixes", filteredPrefixes);
-        console.log("active Mods", filteredMods);
+        // console.log("active implicits", filteredImplicits);
+        // console.log("active suffixes", filteredSuffixes);
+        // console.log("active prefixes", filteredPrefixes);
+        // console.log("active Mods", filteredMods);
         setActiveItemMods(filteredMods);
         modTypes = [...new Set(filteredMods.map((mod) => mod.type))];
         //go back to this way if new way doesn't work, and change mod.type.replace to mod.replace for ActiveArea.jsx in the maps
@@ -305,8 +286,8 @@ export default function CalculatorPage() {
       // }
       setActiveItemModTypes(modTypes);
 
-      console.log("modTypes", modTypes);
-      console.log("active item mods", activeItemMods);
+      // console.log("modTypes", modTypes);
+      // console.log("active item mods", activeItemMods);
     }
   }, [activeItem]);
 
