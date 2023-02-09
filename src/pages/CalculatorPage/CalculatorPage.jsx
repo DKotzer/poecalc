@@ -222,20 +222,20 @@ export default function CalculatorPage() {
 
           return false;
         });
-        const filteredImplicits = filteredMods.filter((mod) => {
-          for (let i = 0; i < mod.spawn_weights.length; i++) {
-            if (
-              activeTags.includes(mod.spawn_weights[i].tag) &&
-              mod.spawn_weights[i].weight > 0 &&
-              mod.domain === "item" &&
-              ["implicit"].includes(mod.generation_type)
-            ) {
-              return true;
-            }
-          }
+        // const filteredImplicits = filteredMods.filter((mod) => {
+        //   for (let i = 0; i < mod.spawn_weights.length; i++) {
+        //     if (
+        //       activeTags.includes(mod.spawn_weights[i].tag) &&
+        //       mod.spawn_weights[i].weight > 0 &&
+        //       mod.domain === "item" &&
+        //       ["implicit"].includes(mod.generation_type)
+        //     ) {
+        //       return true;
+        //     }
+        //   }
 
-          return false;
-        });
+        //   return false;
+        // });
         // console.log("active implicits", filteredImplicits);
         // console.log("active suffixes", filteredSuffixes);
         // console.log("active prefixes", filteredPrefixes);
@@ -293,8 +293,8 @@ export default function CalculatorPage() {
 
   useEffect(() => {
     setItemList(
-      Object.entries(currentBases).map((item) => (
-        <Card className='itemCard'>
+      Object.entries(currentBases).map((item, i) => (
+        <Card key={i} className='itemCard'>
           <Card.Body>
             <Card.Title
               className='cardTitle'
@@ -335,10 +335,10 @@ export default function CalculatorPage() {
               ) : (
                 ""
               )}
-              {Object.keys(item[1].properties).map((key) => {
+              {Object.keys(item[1].properties).map((key,i) => {
                 if (typeof item[1].properties[key] == "object") {
                   return (
-                    <div>
+                    <div key={i}>
                       <div>
                         {key
                           .replace(/_/g, " ")
