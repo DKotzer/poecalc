@@ -212,7 +212,7 @@ export default function CalculatorPage() {
           return false;
         });
         console.log(filteredMods);
-        setActiveItemMods(filteredMods)
+        setActiveItemMods(filteredMods);
         modTypes = [...new Set(filteredMods.map((mod) => mod.type))];
       } else {
         console.log("short mods list length = 0");
@@ -250,6 +250,7 @@ export default function CalculatorPage() {
       setActiveItemModTypes(modTypes);
 
       console.log("modTypes", modTypes);
+      console.log("active item mods", activeItemMods);
     }
   }, [activeItem]);
 
