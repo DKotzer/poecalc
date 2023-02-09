@@ -121,7 +121,7 @@ export default function CalculatorPage() {
       )
       .then((response) => {
         //want to set it to tempHolder instead but tempHolder is coming back as empty, need to fix the filter
-        // setModsList(response.data);
+        setModsList(response.data);
         // console.log("modsList initial", response.data);
         setShortModsList(
           Object.entries(response.data)
